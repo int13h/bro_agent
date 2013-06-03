@@ -1,0 +1,24 @@
+#
+# Configuration file for bro_agent.tcl
+#
+
+# DEBUG is VERY chatty. Use it only when needed.
+# 1=on 0=off
+set DEBUG 0
+
+# Run in background
+# 1=yes 0=no
+set DAEMON 0
+
+# Name of sguild server
+set SERVER_HOST localhost
+
+# Port sguild listens on for sensor connects
+set SERVER_PORT 7736
+
+# Local hostname - that means this machines name
+# Note: Sensors monitoring multiple interfaces need to use a unique 'hostname'
+set HOSTNAME bro-01
+
+# The net id is used to correlate data from different agents.
+set NET_GROUP Canada
