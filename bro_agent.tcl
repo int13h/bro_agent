@@ -86,7 +86,7 @@ proc InitAgent {} {
         exit 1
     }
     
-    if [catch {open "| tail -n 0 -f $FILENAME" r} fileID] {
+    if [catch {open "| tail -F -n 0 -f $FILENAME" r} fileID] {
         puts "Error opening $FILENAME : $fileID"
         exit 1
     }
