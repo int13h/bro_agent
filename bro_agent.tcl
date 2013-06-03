@@ -169,7 +169,6 @@ proc ProcessData { line } {
     # double,addr,string,subnet
 
     set fields [split $line '\t']
-
     if { [llength $fields] == 27 } {
 
         lassign $fields \
@@ -238,7 +237,8 @@ proc ProcessData { line } {
     if { $GO == 1 } {
 
         set message "Bro $note"
-        set sig_id [string range [scan [md5::md5 -hex $note] %x] 0 7] 
+        set tmp_id [string range [md5::md5 -hex $note] 0 14]
+        set sig_id [string range [scan $tmp_id %x] 0 7] 
         set rev "1"
         set priority 3
         set class "misc-activity"
