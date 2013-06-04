@@ -187,12 +187,20 @@ proc ProcessData { line } {
             set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
 
             # Source address and port
-            set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
+            if { $_src_ip == "-" } {
+                set parts [split [FourSix "$src:0"] "|"]
+            } else {
+                set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
+            }
 
             lassign $parts src_ip src_port
 
             # Destination address and port
-            set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
+            if { $_dst_ip == "-" } {
+                set parts [split [FourSix "$dst:$p"] "|"]
+            } else {
+                set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
+            }
 
             lassign $parts dst_ip dst_port
 
