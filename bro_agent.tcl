@@ -158,6 +158,7 @@ proc FourSix { ip_port } {
 proc ProcessData { line } {
 
     global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
+    global EVENT_PRIORITY EVENT_CLASS
     global sguildSocketID DEBUG
     set GO 0
 
@@ -240,8 +241,8 @@ proc ProcessData { line } {
         set tmp_id [string range [md5::md5 -hex $note] 0 14]
         set sig_id [string range [scan $tmp_id %x] 0 7] 
         set rev "1"
-        set priority 3
-        set class "misc-activity"
+        set priority $EVENT_PRIORITY
+        set class $EVENT_CLASS
 
         # Build the event to send
         set event [list GenericEvent 0 $priority $class $HOSTNAME $nDate $AGENT_ID $NEXT_EVENT_ID \
@@ -571,6 +572,9 @@ if { [info exists CONF_FILE] } {
     }
 
     close $confFileID
+
+    if { ![info exists EVENT_PRIORITY] } { set $EVENT_PRIORITY 1 }
+    if { ![info exists EVENT_CLASS] } { set $EVENT_CLASS misc-activity }
 
 } else {
 
