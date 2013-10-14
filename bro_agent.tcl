@@ -235,7 +235,8 @@ proc ProcessData { line } {
                 puts "metric_index.network: $mi_network"
             }
 
-            set detail "Message: $msg Sub: $sub Src: $src Dst: $dst P: $p N: $n Peer Descr: $peer_descr Actions: $actions Policy Items: $policy_items Suppress For: $suppress_for Dropped: $dropped Country Code: $country_code Region: $region City: $city Lat.: $latitude Long.: $longitude MI Host: $mi_host MI Str: $mi_str MI Network: $mi_network"
+            set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \nPolicy Items: $policy_items \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $country_code \nRegion: $region \nCity: $city \nLat.: $latitude \nLong.: $longitude \nMI Host: $mi_host \nMI Str: $mi_str \nMI Network: $mi_network"
+
             
             set GO 1
 
