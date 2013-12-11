@@ -5,6 +5,7 @@
 
 This agent adds events from Bro's notice.log to Sguil.
 
+See: http://www.squertproject.org/bro_notice.png
 
 ## Requirements
 

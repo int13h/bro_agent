@@ -162,19 +162,17 @@ proc ProcessData { line } {
     global sguildSocketID DEBUG
     set GO 0
 
-    # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,proto,note,msg,sub,src,dst,p,n,peer_descr,actions,policy_items \
-    # suppress_for,dropped,remote_location.country_code,remote_location.region,remote_location.city,remote_location.latitude \
-    # remote_location.longitude,metric_index.host,metric_index.str,metric_index.network
-    # time,string,addr,port,addr,port,enum,enum,string,string,addr,addr,port,count,string,table[enum],table[count] \
-    # interval,bool,string,string,string,double \
-    # double,addr,string,subnet
+    # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,proto,note,msg,sub,src,dst,p,n,peer_descr
+    # actions,suppress_for,dropped,remote_location.country_code,remote_location.region,remote_location.city,remote_location.latitude,
+    # remote_location.longitude
 
     set fields [split $line '\t']
-    if { [llength $fields] == 27 } {
+    if { [llength $fields] == 26 } {
 
         lassign $fields \
-                timestamp uid _src_ip _src_port _dst_ip _dst_port proto note msg sub src dst p n peer_descr actions policy_items \
-                suppress_for dropped country_code region city latitude longitude mi_host mi_str mi_network
+                timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
+                p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
+                remote_location_city remote_location_latitude remote_location_longitude
 
         if { [regexp -expanded {
 
@@ -212,6 +210,9 @@ proc ProcessData { line } {
                 puts "id.orig_p: $src_port"
                 puts "id.resp_h: $dst_ip"
                 puts "id.resp_p: $dst_port"
+                puts "fuid: $fuid"
+                puts "file_mime_type: $file_mime_type"
+                puts "file_desc: $file_desc"
                 puts "proto: $proto"
                 puts "note: $note"
                 puts "msg: $msg"
@@ -222,22 +223,20 @@ proc ProcessData { line } {
                 puts "n: $n"
                 puts "peer_descr: $peer_descr"
                 puts "actions: $actions"
-                puts "policy_items: $policy_items"
                 puts "suppress_for: $suppress_for"
                 puts "dropped: $dropped"
-                puts "remote_location.country_code: $country_code"
-                puts "remote_location.region: $region"
-                puts "remote_location.city: $city"
-                puts "remote_location.latitude: $latitude"
-                puts "remote_location.longitude: $longitude"
-                puts "metric_index.host: $mi_host"
-                puts "metric_index.str: $mi_str"
-                puts "metric_index.network: $mi_network"
+                puts "remote_location.country_code: $remote_location_country_code"
+                puts "remote_location.region: $remote_location_region"
+                puts "remote_location.city: $remote_location_city"
+                puts "remote_location.latitude: $remote_location_latitude"
+                puts "remote_location.longitude: $remote_location_longitude"
             }
 
-            set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \nPolicy Items: $policy_items \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $country_code \nRegion: $region \nCity: $city \nLat.: $latitude \nLong.: $longitude \nMI Host: $mi_host \nMI Str: $mi_str \nMI Network: $mi_network"
-
-            
+            set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nFUID: $fuid \nFile Mime Type: $file_mime_type \
+                        \nFile Desc: $file_desc \nProto: $proto \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \
+                        \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $remote_location_country_code \
+                        \nRegion: $remote_location_region \nCity: $remote_location_city \
+                        \nLat.: $remote_location_latitude \nLong.: $remote_location_longitude"
             set GO 1
 
         }
