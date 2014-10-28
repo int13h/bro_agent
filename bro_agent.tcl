@@ -23,7 +23,7 @@ exec tclsh "$0" "$@"
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
 # Make sure you define the version this agent will work with. 
-set VERSION "SGUIL-0.8.0"
+set VERSION "SGUIL-0.9.0"
 
 # Define the agent type here. It will be used to register the agent with sguild.
 # The template also prepends the agent type in all caps to all event messages.
@@ -133,6 +133,7 @@ proc FourSix { ip_port } {
 
                 } $ip_port match ip port ] } {
 
+        if { $port == "-" } { set port 0 }
         return "$ip|$port"
     }
 
@@ -144,6 +145,7 @@ proc FourSix { ip_port } {
 
                 } $ip_port match ip port ] } {
 
+        if { $port == "-" } { set port 0 }
         return "0.0.0.0|$port"
 
     }
@@ -183,7 +185,7 @@ proc ProcessData { line } {
 
             # Format timestamp
             set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
-
+            
             # Source address and port
             if { $_src_ip == "-" } {
                 set parts [split [FourSix "$src:0"] "|"]
@@ -245,7 +247,12 @@ proc ProcessData { line } {
  
     if { $GO == 1 } {
 
-        set message "Bro $note"
+        # If this is from the Intel Framework we need a little more information for the signature text 
+        if { $note == "Intel::Notice" } {
+            set message "Bro $msg"
+        } else {
+            set message "Bro $note"
+        }  
         set tmp_id [string range [md5::md5 -hex $note] 0 14]
         set sig_id [string range [scan $tmp_id %x] 0 7] 
         set rev "1"
@@ -361,7 +368,7 @@ proc ConnectToSguilServer {} {
         }
 
         catch { flush $sguildSocketID }
-        tls::import $sguildSocketID
+        tls::import $sguildSocketID -ssl2 false -ssl3 false -tls1 true
 
         set CONNECTED 1
         if {$DEBUG} {puts "Connected to $SERVER_HOST"}
