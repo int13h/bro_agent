@@ -236,7 +236,7 @@ proc ProcessData { line } {
                 set priority $EVENT_PRIORITY_INTEL
                 set class $EVENT_CLASS_INTEL
                 set detail "Indicator: $seen_indicator \nType: $seen_indicator_type \nSeen Where: $seen_where \
-                            \nFUID: $fuid \nFile Mime Type: $file_mime_type \nFile Desc: $file_desc nFile Desc: $file_desc"
+                            \nFUID: $fuid \nFile Mime Type: $file_mime_type \nFile Desc: $file_desc"
             }
         }
 
