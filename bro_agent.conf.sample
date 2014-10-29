@@ -24,7 +24,9 @@ set HOSTNAME bro-01
 set NET_GROUP Canada
 
 # What priority would you like the alerts to be?
-set EVENT_PRIORITY 2
+set EVENT_PRIORITY_NOTICE 2
+set EVENT_PRIORITY_INTEL 1
 
 # What class would you like the alerts to be?
-set EVENT_CLASS misc-activity
+set EVENT_CLASS_NOTICE misc-activity
+set EVENT_CLASS_INTEL bad-unknown

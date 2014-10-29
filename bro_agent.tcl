@@ -3,7 +3,7 @@
 exec tclsh "$0" "$@"
 
 # Bro agent for Sguil - Based on "example_agent.tcl"
-# Portions Copyright (C) 2013 Paul Halliday <paul.halliday@gmail.com>
+# Portions Copyright (C) 2014 Paul Halliday <paul.halliday@gmail.com>
 #
 #
 # Copyright (C) 2002-2008 Robert (Bamm) Visscher <bamm@sguil.net>
@@ -39,7 +39,7 @@ set CONNECTED 0
 
 proc DisplayUsage { cmdName } {
 
-    puts "Usage: $cmdName \[-D\] \[-o\] \[-c <config filename>\] \[-f <bro notice.log>\]"
+    puts "Usage: $cmdName \[-D\] \[-o\] \[-c <config filename>\] \[-f <bro notice.log> <bro intel.log>\]"
     puts "  -c <filename>: PATH to config (bro_agent.conf) file."
     puts "  -f <filename>: PATH to bro notice.log."
     puts "  -D Runs sensor_agent in daemon mode."
@@ -77,16 +77,7 @@ proc InitAgent {} {
 
     global DEBUG FILENAME
 
-    if { ![info exists FILENAME] } { 
-        # Default file is /usr/local/bro/logs/current/notice.log
-        set FILENAME /usr/local/bro/logs/current/notice.log
-    }
-    if { ![file readable $FILENAME] } {
-        puts "Error: Unable to read $FILENAME"
-        exit 1
-    }
-    
-    if [catch {open "| tail -F -n 0 -f $FILENAME" r} fileID] {
+    if [catch {open "| tail -q -F -n 0 -f $FILENAME" r} fileID] {
         puts "Error opening $FILENAME : $fileID"
         exit 1
     }
@@ -160,104 +151,103 @@ proc FourSix { ip_port } {
 proc ProcessData { line } {
 
     global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
-    global EVENT_PRIORITY EVENT_CLASS
+    global EVENT_PRIORITY_NOTICE EVENT_CLASS_NOTICE EVENT_PRIORITY_INTEL EVENT_CLASS_INTEL
     global sguildSocketID DEBUG
     set GO 0
 
+    ## Notice entry looks like this ##
     # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,proto,note,msg,sub,src,dst,p,n,peer_descr
     # actions,suppress_for,dropped,remote_location.country_code,remote_location.region,remote_location.city,remote_location.latitude,
     # remote_location.longitude
+ 
+    ## Intel entry looks like this ##
+    # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,seen.indicator,seen.indicator_type,seen.where,sources
+
+    # There really isn't a lot of error checking here other than record length and a timestamp located in the right spot, right format.
+    # The fields could quite possibly be gibberish but I think regexing every single one is wasteful.
 
     set fields [split $line '\t']
-    if { [llength $fields] == 26 } {
+    set flen [llength $fields]
 
-        lassign $fields \
-                timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
-                p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
-                remote_location_city remote_location_latitude remote_location_longitude
+    switch $flen {
+        26 {
+            # Notice log
+            lassign $fields \
+                    timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
+                    p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
+                    remote_location_city remote_location_latitude remote_location_longitude
+        }
+        13 {
+            # Intel log
+            lassign $fields \
+                    timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc seen_indicator \
+                    seen_indicator_type seen_where sources
+        }
+        default {
+            return 0
+        }
+    }
 
-        if { [regexp -expanded {
+    if { [regexp -expanded {
 
-            ^(\d{10}).      # seconds
-            (\d{6})$        # ms
+        ^(\d{10}).      # seconds
+        (\d{6})$        # ms
 
-                } $timestamp match seconds ms ] } {
+            } $timestamp match seconds ms ] } {
 
-            # Format timestamp
-            set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
+        # Format timestamp
+        set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
             
-            # Source address and port
-            if { $_src_ip == "-" } {
-                set parts [split [FourSix "$src:0"] "|"]
-            } else {
-                set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
-            }
-
-            lassign $parts src_ip src_port
-
-            # Destination address and port
-            if { $_dst_ip == "-" } {
-                set parts [split [FourSix "$dst:$p"] "|"]
-            } else {
-                set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
-            }
-
-            lassign $parts dst_ip dst_port
-
-            if { $DEBUG } {
-                puts "\n----"
-                puts "ts: $timestamp"
-                puts "uid: $uid"
-                puts "id.orig_h: $src_ip"
-                puts "id.orig_p: $src_port"
-                puts "id.resp_h: $dst_ip"
-                puts "id.resp_p: $dst_port"
-                puts "fuid: $fuid"
-                puts "file_mime_type: $file_mime_type"
-                puts "file_desc: $file_desc"
-                puts "proto: $proto"
-                puts "note: $note"
-                puts "msg: $msg"
-                puts "sub: $sub"
-                puts "src: $src" 
-                puts "dst: $dst"
-                puts "p: $p"
-                puts "n: $n"
-                puts "peer_descr: $peer_descr"
-                puts "actions: $actions"
-                puts "suppress_for: $suppress_for"
-                puts "dropped: $dropped"
-                puts "remote_location.country_code: $remote_location_country_code"
-                puts "remote_location.region: $remote_location_region"
-                puts "remote_location.city: $remote_location_city"
-                puts "remote_location.latitude: $remote_location_latitude"
-                puts "remote_location.longitude: $remote_location_longitude"
-            }
-
-            set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nFUID: $fuid \nFile Mime Type: $file_mime_type \
-                        \nFile Desc: $file_desc \nProto: $proto \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \
-                        \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $remote_location_country_code \
-                        \nRegion: $remote_location_region \nCity: $remote_location_city \
-                        \nLat.: $remote_location_latitude \nLong.: $remote_location_longitude"
-            set GO 1
-
+        # Source address and port
+        if { $_src_ip == "-" } {
+            set parts [split [FourSix "$src:0"] "|"]
+        } else {
+            set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
         }
 
-    }
- 
-    if { $GO == 1 } {
+        lassign $parts src_ip src_port
 
-        # If this is from the Intel Framework we need a little more information for the signature text 
-        if { $note == "Intel::Notice" } {
-            set message "Bro $msg"
+        # Destination address and port
+        if { $_dst_ip == "-" } {
+            set parts [split [FourSix "$dst:$p"] "|"]
         } else {
-            set message "Bro $note"
-        }  
-        set tmp_id [string range [md5::md5 -hex $note] 0 14]
+            set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
+        }
+
+        lassign $parts dst_ip dst_port
+
+        switch $flen {
+            26 {
+                # Notice
+                # If intel happens to be feeding into notice as well, we skip (essentially a duplicate)
+                if { $note == "Intel::Notice" } { return 0 }
+                set message "Bro $note"
+                set priority $EVENT_PRIORITY_NOTICE
+                set class $EVENT_CLASS_NOTICE
+                set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nFUID: $fuid \nFile Mime Type: $file_mime_type \
+                            \nFile Desc: $file_desc \nProto: $proto \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \
+                            \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $remote_location_country_code \
+                            \nRegion: $remote_location_region \nCity: $remote_location_city \
+                            \nLat.: $remote_location_latitude \nLong.: $remote_location_longitude"
+            }
+            13 {
+                # Intel
+                set message "Bro $seen_indicator_type ($seen_indicator)"
+                set priority $EVENT_PRIORITY_INTEL
+                set class $EVENT_CLASS_INTEL
+                set detail "Indicator: $seen_indicator \nType: $seen_indicator_type \nSeen Where: $seen_where \
+                            \nFUID: $fuid \nFile Mime Type: $file_mime_type \nFile Desc: $file_desc nFile Desc: $file_desc"
+            }
+        }
+
+        set GO 1
+
+    }
+
+    if { $GO == 1 } {
+        set tmp_id [string range [md5::md5 -hex $message] 0 14]
         set sig_id [string range [scan $tmp_id %x] 0 7] 
         set rev "1"
-        set priority $EVENT_PRIORITY
-        set class $EVENT_CLASS
 
         # Build the event to send
         set event [list GenericEvent 0 $priority $class $HOSTNAME $nDate $AGENT_ID $NEXT_EVENT_ID \
@@ -312,7 +302,7 @@ proc ProcessData { line } {
     
         # Success! Increment the next event id
         incr NEXT_EVENT_ID
-    
+
     }
 
 }
@@ -588,8 +578,10 @@ if { [info exists CONF_FILE] } {
 
     close $confFileID
 
-    if { ![info exists EVENT_PRIORITY] } { set $EVENT_PRIORITY 1 }
-    if { ![info exists EVENT_CLASS] } { set $EVENT_CLASS misc-activity }
+    if { ![info exists EVENT_PRIORITY_NOTICE] } { set $EVENT_PRIORITY_NOTICE 2 }
+    if { ![info exists EVENT_CLASS_NOTICE] } { set $EVENT_CLASS_NOTICE "misc-activity" }
+    if { ![info exists EVENT_PRIORITY_INTEL] } { set $EVENT_PRIORITY_INTEL 1 }
+    if { ![info exists EVENT_CLASS_INTEL] } { set $EVENT_CLASS_INTEL "bad-unknown" }
 
 } else {
 
