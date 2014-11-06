@@ -3,9 +3,9 @@
 
 ## Description
 
-This agent adds events from Bro's notice.log to Sguil.
+This agent adds events from Bro's intel.log and notice.log to Sguil.
 
-See: http://www.squertproject.org/bro_notice.png
+Details: [http://www.pintumbler.org/words/broagentforsguil-nowsupportsintellog](Here)
 
 ## Requirements
 
