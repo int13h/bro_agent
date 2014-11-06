@@ -5,7 +5,7 @@
 
 This agent adds events from Bro's intel.log and notice.log to Sguil.
 
-Details: [http://www.pintumbler.org/words/broagentforsguil-nowsupportsintellog](Here)
+Details: [Here](http://www.pintumbler.org/words/broagentforsguil-nowsupportsintellog)
 
 ## Requirements
 
