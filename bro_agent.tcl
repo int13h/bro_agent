@@ -224,19 +224,19 @@ proc ProcessData { line } {
                 set message "Bro $note"
                 set priority $EVENT_PRIORITY_NOTICE
                 set class $EVENT_CLASS_NOTICE
-                set detail "Message: $msg \nSub: $sub \nSrc: $src \nDst: $dst \nFUID: $fuid \nFile Mime Type: $file_mime_type \
-                            \nFile Desc: $file_desc \nProto: $proto \nP: $p \nN: $n \nPeer Descr: $peer_descr \nActions: $actions \
-                            \nSuppress For: $suppress_for \nDropped: $dropped \nCountry Code: $remote_location_country_code \
-                            \nRegion: $remote_location_region \nCity: $remote_location_city \
-                            \nLat.: $remote_location_latitude \nLong.: $remote_location_longitude"
+                set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
+                            \nFile Desc:\t $file_desc \nProto:\t $proto \nP:\t $p \nN:\t $n \nPeer Descr:\t $peer_descr \nActions:\t $actions \
+                            \nSuppress For:\t $suppress_for \nDropped:\t $dropped \nCountry Code:\t $remote_location_country_code \
+                            \nRegion:\t $remote_location_region \nCity:\t $remote_location_city \
+                            \nLat.:\t $remote_location_latitude \nLong.:\t $remote_location_longitude"
             }
             13 {
                 # Intel
                 set message "Bro $seen_indicator_type ($seen_indicator)"
                 set priority $EVENT_PRIORITY_INTEL
                 set class $EVENT_CLASS_INTEL
-                set detail "Indicator: $seen_indicator \nType: $seen_indicator_type \nSeen Where: $seen_where \
-                            \nSources: $sources \nUID: $uid  \nFUID: $fuid \nFile Mime Type: $file_mime_type \nFile Desc: $file_desc"
+                set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \
+                            \nSources:\t $sources \nUID:\t $uid  \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \nFile Desc:\t $file_desc"
             }
         }
 
