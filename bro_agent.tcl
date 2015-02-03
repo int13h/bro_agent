@@ -96,7 +96,7 @@ proc ReadFile { fileID } {
     if { [eof $fileID] || [catch {gets $fileID line} tmpError] } {
     
         puts "Error processing file."
-        if { [info exits tmpError] } { puts "$tmpError" }
+        if { [info exists tmpError] } { puts "$tmpError" }
         catch {close $fileID} 
         exit 1
 
