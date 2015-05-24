@@ -153,6 +153,7 @@ proc ProcessData { line } {
     global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
     global EVENT_PRIORITY_NOTICE EVENT_CLASS_NOTICE EVENT_PRIORITY_INTEL EVENT_CLASS_INTEL
     global sguildSocketID DEBUG
+    global IGNORE_NOTICE_TYPES
     set GO 0
 
     ## Notice entry looks like this ##
@@ -176,6 +177,9 @@ proc ProcessData { line } {
                     timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
                     p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
                     remote_location_city remote_location_latitude remote_location_longitude
+            # If intel happens to be feeding into notice as well, we skip (essentially a duplicate)
+            # Ignore other notice types contained in IGNORE_NOTICE_TYPES
+            if { $note == "Intel::Notice" || [lsearch $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }
         }
         13 {
             # Intel log
@@ -219,8 +223,6 @@ proc ProcessData { line } {
         switch $flen {
             26 {
                 # Notice
-                # If intel happens to be feeding into notice as well, we skip (essentially a duplicate)
-                if { $note == "Intel::Notice" } { return 0 }
                 set message "Bro $note"
                 set priority $EVENT_PRIORITY_NOTICE
                 set class $EVENT_CLASS_NOTICE
