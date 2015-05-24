@@ -31,5 +31,5 @@ set EVENT_PRIORITY_INTEL 1
 set EVENT_CLASS_NOTICE misc-activity
 set EVENT_CLASS_INTEL bad-unknown
 
-# Parse only these notices in notice.log
-set ONLY_THESE_NOTICE_TYPES {ALL}
+# Parse only these notice types in notice.log
+set IGNORE_NOTICE_TYPES {}
