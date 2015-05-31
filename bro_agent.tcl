@@ -226,7 +226,7 @@ proc ProcessData { line } {
                 set message "\[BRO\] $note"
                 set priority $EVENT_PRIORITY_NOTICE
                 set class $EVENT_CLASS_NOTICE
-                set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
+                set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nUID:\t $uid \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
                             \nFile Desc:\t $file_desc \nProto:\t $proto \nP:\t $p \nN:\t $n \nPeer Descr:\t $peer_descr \nActions:\t $actions \
                             \nSuppress For:\t $suppress_for \nDropped:\t $dropped \nCountry Code:\t $remote_location_country_code \
                             \nRegion:\t $remote_location_region \nCity:\t $remote_location_city \
