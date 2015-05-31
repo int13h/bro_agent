@@ -223,7 +223,7 @@ proc ProcessData { line } {
         switch $flen {
             26 {
                 # Notice
-                set message "[BRO] $note"
+                set message "\[BRO\] $note"
                 set priority $EVENT_PRIORITY_NOTICE
                 set class $EVENT_CLASS_NOTICE
                 set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
@@ -234,7 +234,7 @@ proc ProcessData { line } {
             }
             13 {
                 # Intel
-                set message "Bro $seen_indicator_type ($seen_indicator)"
+                set message "\[Bro\] $seen_indicator_type ($seen_indicator)"
                 set priority $EVENT_PRIORITY_INTEL
                 set class $EVENT_CLASS_INTEL
                 set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \
