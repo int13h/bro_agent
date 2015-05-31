@@ -234,7 +234,7 @@ proc ProcessData { line } {
             }
             13 {
                 # Intel
-                set message "\[Bro\] $seen_indicator_type ($seen_indicator)"
+                set message "\[BRO\] $seen_indicator_type ($seen_indicator)"
                 set priority $EVENT_PRIORITY_INTEL
                 set class $EVENT_CLASS_INTEL
                 set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \
