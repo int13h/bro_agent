@@ -18,7 +18,7 @@ set SERVER_PORT 7736
 
 # Local hostname - that means this machines name
 # Note: Sensors monitoring multiple interfaces need to use a unique 'hostname'
-set HOSTNAME so-sensor
+set HOSTNAME so-bro
 
 # The net id is used to correlate data from different agents.
 set NET_GROUP TEST
