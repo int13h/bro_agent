@@ -231,6 +231,12 @@ proc ProcessData { line } {
                             \nSuppress For:\t $suppress_for \nDropped:\t $dropped \nCountry Code:\t $remote_location_country_code \
                             \nRegion:\t $remote_location_region \nCity:\t $remote_location_city \
                             \nLat.:\t $remote_location_latitude \nLong.:\t $remote_location_longitude"
+                switch $proto {
+                    "tcp" { set proto 6 }
+                    "udp" { set proto 17 }
+                    "icmp" { set proto 1 }
+                    default { set proto 6 }
+                }
             }
             13 {
                 # Intel
@@ -239,6 +245,7 @@ proc ProcessData { line } {
                 set class $EVENT_CLASS_INTEL
                 set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \
                             \nSources:\t $sources \nUID:\t $uid  \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \nFile Desc:\t $file_desc"
+                set proto 6
             }
         }
 
@@ -253,7 +260,7 @@ proc ProcessData { line } {
 
         # Build the event to send
         set event [list GenericEvent 0 $priority $class $HOSTNAME $nDate $AGENT_ID $NEXT_EVENT_ID \
-                   $NEXT_EVENT_ID [string2hex $message] $src_ip $dst_ip 6 $src_port $dst_port \
+                   $NEXT_EVENT_ID [string2hex $message] $src_ip $dst_ip $proto $src_port $dst_port \
                    $GEN_ID 4$sig_id $rev [string2hex $detail]]
     
         # Send the event to sguild
