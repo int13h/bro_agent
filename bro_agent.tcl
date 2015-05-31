@@ -223,7 +223,7 @@ proc ProcessData { line } {
         switch $flen {
             26 {
                 # Notice
-                set message "Bro $note"
+                set message "[BRO] $note"
                 set priority $EVENT_PRIORITY_NOTICE
                 set class $EVENT_CLASS_NOTICE
                 set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
