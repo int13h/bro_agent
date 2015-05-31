@@ -4,7 +4,7 @@
 
 # DEBUG is VERY chatty. Use it only when needed.
 # 1=on 0=off
-set DEBUG 0
+set DEBUG 0 
 
 # Run in background
 # 1=yes 0=no
@@ -18,10 +18,10 @@ set SERVER_PORT 7736
 
 # Local hostname - that means this machines name
 # Note: Sensors monitoring multiple interfaces need to use a unique 'hostname'
-set HOSTNAME bro-01
+set HOSTNAME so-sensor
 
 # The net id is used to correlate data from different agents.
-set NET_GROUP Canada
+set NET_GROUP TEST
 
 # What priority would you like the alerts to be?
 set EVENT_PRIORITY_NOTICE 2
@@ -31,5 +31,8 @@ set EVENT_PRIORITY_INTEL 1
 set EVENT_CLASS_NOTICE misc-activity
 set EVENT_CLASS_INTEL bad-unknown
 
-# Parse only these notice types in notice.log
-set IGNORE_NOTICE_TYPES {}
+# What notices and intel do you want sent to Sguil
+# Intel hits with multiple sources will always be sent to Sguil
+# Ignore Intel:Notice types by default as they will be duplicates of Intel log entries
+set IGNORE_NOTICE_TYPES {Intel::Notice}
+set IGNORE_INTEL_SOURCES {}
