@@ -77,15 +77,15 @@ proc InitAgent {} {
 
     global DEBUG FILENAME
 
-    if [catch {open "| tail -q -F -n 0 -f $FILENAME" r} fileID] {
+    if [catch {open "| tail -n 0 -F $FILENAME" r} fileID] {
         puts "Error opening $FILENAME : $fileID"
         exit 1
     }
 
     fconfigure $fileID -buffering line
     # Proc ReadFile will be called as new lines are appended.
-    fileevent $fileID readable [list ReadFile $fileID]
-
+    #fileevent $fileID readable [list ReadFile $fileID]
+    ReadFile $fileID
 }
 
 #
@@ -93,20 +93,21 @@ proc InitAgent {} {
 #
 proc ReadFile { fileID } {
 
-    if { [eof $fileID] || [catch {gets $fileID line} tmpError] } {
+    while { ! [eof $fileID] } {
+        if { [eof $fileID] || [catch {gets $fileID line} tmpError] } {
     
-        puts "Error processing file."
-        if { [info exists tmpError] } { puts "$tmpError" }
-        catch {close $fileID} 
-        exit 1
+            puts "Error processing file."
+            if { [info exists tmpError] } { puts "$tmpError" }
+            catch {close $fileID} 
+            exit 1
 
-    } else {
+        } else {
             
-        # I prefer to process the data in a different proc.
-        ProcessData $line
+            # I prefer to process the data in a different proc.
+            ProcessData $line
 
+        }
     }
-
 }
 
 #
@@ -152,8 +153,8 @@ proc ProcessData { line } {
 
     global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
     global EVENT_PRIORITY_NOTICE EVENT_CLASS_NOTICE EVENT_PRIORITY_INTEL EVENT_CLASS_INTEL
+    global IGNORE_NOTICE_TYPES IGNORE_INTEL_SOURCES
     global sguildSocketID DEBUG
-    global IGNORE_NOTICE_TYPES
     set GO 0
 
     ## Notice entry looks like this ##
@@ -166,10 +167,8 @@ proc ProcessData { line } {
 
     # There really isn't a lot of error checking here other than record length and a timestamp located in the right spot, right format.
     # The fields could quite possibly be gibberish but I think regexing every single one is wasteful.
-
     set fields [split $line '\t']
     set flen [llength $fields]
-
     switch $flen {
         26 {
             # Notice log
@@ -177,15 +176,16 @@ proc ProcessData { line } {
                     timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
                     p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
                     remote_location_city remote_location_latitude remote_location_longitude
-            # If intel happens to be feeding into notice as well, we skip (essentially a duplicate)
-            # Ignore other notice types contained in IGNORE_NOTICE_TYPES
-            if { $note == "Intel::Notice" || [lsearch $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }
+            # Only send certain notice types to Sguil
+            if { [lsearch -nocase $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }   
         }
         13 {
             # Intel log
             lassign $fields \
                     timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc seen_indicator \
                     seen_indicator_type seen_where sources
+            # Only send intel from specified sources to Sguil
+            if { [lsearch -nocase $IGNORE_INTEL_SOURCES $sources] >= 0} { return 0 }
         }
         default {
             return 0
@@ -447,6 +447,7 @@ proc Daemonize {} {
     }
 
 }
+
 #
 # CheckLineFormat - Parses CONF_FILE lines to make sure they are formatted
 #                   correctly (set varName value). Returns 1 if good.
@@ -632,4 +633,4 @@ while { ![ConnectToSguilServer] } {
 InitAgent
 
 # This causes tcl to go to it's event loop
-vwait FOREVER
+#vwait FOREVER
