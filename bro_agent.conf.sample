@@ -18,10 +18,10 @@ set SERVER_PORT 7736
 
 # Local hostname - that means this machines name
 # Note: Sensors monitoring multiple interfaces need to use a unique 'hostname'
-set HOSTNAME so-bro
+set HOSTNAME bro
 
 # The net id is used to correlate data from different agents.
-set NET_GROUP TEST
+set NET_GROUP bro
 
 # What priority would you like the alerts to be?
 set EVENT_PRIORITY_NOTICE 2
