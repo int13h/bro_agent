@@ -31,7 +31,7 @@ set EVENT_PRIORITY_INTEL 1
 set EVENT_CLASS_NOTICE misc-activity
 set EVENT_CLASS_INTEL bad-unknown
 
-# What notices and intel do you want sent to Sguil
+# What notices and intel do you not want sent to Sguil?
 # Intel hits with multiple sources will always be sent to Sguil
 # Ignore Intel:Notice types by default as they will be duplicates of Intel log entries
 set IGNORE_NOTICE_TYPES {Intel::Notice}
