@@ -22,7 +22,7 @@ exec tclsh "$0" "$@"
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
-# Make sure you define the version this agent will work with. 
+# Make sure you define the version this agent will work with.
 set VERSION "SGUIL-0.9.0"
 
 # Define the agent type here. It will be used to register the agent with sguild.
@@ -39,35 +39,35 @@ set CONNECTED 0
 
 proc DisplayUsage { cmdName } {
 
-    puts "Usage: $cmdName \[-D\] \[-o\] \[-c <config filename>\] \[-f <bro notice.log> <bro intel.log>\]"
-    puts "  -c <filename>: PATH to config (bro_agent.conf) file."
-    puts "  -f <filename>: PATH to bro notice.log."
-    puts "  -D Runs sensor_agent in daemon mode."
-    exit
+        puts "Usage: $cmdName \[-D\] \[-o\] \[-c <config filename>\] \[-f <bro notice.log> <bro intel.log>\]"
+        puts "  -c <filename>: PATH to config (bro_agent.conf) file."
+        puts "  -f <filename>: PATH to bro notice.log."
+        puts "  -D Runs sensor_agent in daemon mode."
+        exit
 
 }
 
 # bgerror: This is a generic error catching proc. You shouldn't need to change it.
 proc bgerror { errorMsg } {
 
-    global errorInfo sguildSocketID
+        global errorInfo sguildSocketID
 
-    # Catch SSL errors, close the channel, and reconnect.
-    # else write the error and exit.
-    if { [regexp {^SSL channel "(.*)":} $errorMsg match socketID] } {
+        # Catch SSL errors, close the channel, and reconnect.
+        # else write the error and exit.
+        if { [regexp {^SSL channel "(.*)":} $errorMsg match socketID] } {
 
-        catch { close $sguildSocketID } tmpError
-        ConnectToSguilServer
+                catch { close $sguildSocketID } tmpError
+                ConnectToSguilServer
 
-    } else {
+        } else {
 
-        puts "Error: $errorMsg"
-        if { [info exists errorInfo] } {
-            puts $errorInfo
+                puts "Error: $errorMsg"
+                if { [info exists errorInfo] } {
+                        puts $errorInfo
+                }
+                exit
+
         }
-        exit
-
-    }
 
 }
 
@@ -75,17 +75,17 @@ proc bgerror { errorMsg } {
 # Open a file to monitor or even a socket to receive data from.
 proc InitAgent {} {
 
-    global DEBUG FILENAME
+        global DEBUG FILENAME
 
-    if [catch {open "| tail -n 0 -F $FILENAME" r} fileID] {
-        puts "Error opening $FILENAME : $fileID"
-        exit 1
-    }
+        if [catch {open "| tail -n 0 -F $FILENAME" r} fileID] {
+                puts "Error opening $FILENAME : $fileID"
+                exit 1
+        }
 
-    fconfigure $fileID -buffering line
-    # Proc ReadFile will be called as new lines are appended.
-    #fileevent $fileID readable [list ReadFile $fileID]
-    ReadFile $fileID
+        fconfigure $fileID -buffering line
+        # Proc ReadFile will be called as new lines are appended.
+        #fileevent $fileID readable [list ReadFile $fileID]
+        ReadFile $fileID
 }
 
 #
@@ -93,21 +93,21 @@ proc InitAgent {} {
 #
 proc ReadFile { fileID } {
 
-    while { ! [eof $fileID] } {
-        if { [eof $fileID] || [catch {gets $fileID line} tmpError] } {
-    
-            puts "Error processing file."
-            if { [info exists tmpError] } { puts "$tmpError" }
-            catch {close $fileID} 
-            exit 1
+        while { ! [eof $fileID] } {
+                if { [eof $fileID] || [catch {gets $fileID line} tmpError] } {
 
-        } else {
-            
-            # I prefer to process the data in a different proc.
-            ProcessData $line
+                        puts "Error processing file."
+                        if { [info exists tmpError] } { puts "$tmpError" }
+                        catch {close $fileID}
+                        exit 1
 
+                } else {
+
+                        # I prefer to process the data in a different proc.
+                        ProcessData $line
+
+                }
         }
-    }
 }
 
 #
@@ -115,34 +115,34 @@ proc ReadFile { fileID } {
 #
 proc FourSix { ip_port } {
 
-    # Until sguil supports ipv6 we just return 0.0.0.0 for v6 addresses
+        # Until sguil supports ipv6 we just return 0.0.0.0 for v6 addresses
 
-    # v4
-    if { [regexp -expanded {
+        # v4
+        if { [regexp -expanded {
 
-            ^(\d+\.\d+\.\d+\.\d+):      # ip
-            (.*$)                       # port
+                        ^(\d+\.\d+\.\d+\.\d+):      # ip
+                        (.*$)                       # port
 
-                } $ip_port match ip port ] } {
+                                } $ip_port match ip port ] } {
 
-        if { $port == "-" } { set port 0 }
-        return "$ip|$port"
-    }
+                if { $port == "-" } { set port 0 }
+                return "$ip|$port"
+        }
 
-    # v6
-    if { [regexp -expanded {
+        # v6
+        if { [regexp -expanded {
 
-            ^([0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}): # ip
-            (.*$)                                                                                               # port
+                        ^([0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}:[0-9A-f]{4}): # ip
+                        (.*$)                                                                                               # port
 
-                } $ip_port match ip port ] } {
+                                } $ip_port match ip port ] } {
 
-        if { $port == "-" } { set port 0 }
-        return "0.0.0.0|$port"
+                if { $port == "-" } { set port 0 }
+                return "0.0.0.0|$port"
 
-    }
+        }
 
-    return "0.0.0.0|0"
+        return "0.0.0.0|0"
 
 }
 
@@ -151,307 +151,310 @@ proc FourSix { ip_port } {
 #
 proc ProcessData { line } {
 
-    global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
-    global EVENT_PRIORITY_NOTICE EVENT_CLASS_NOTICE EVENT_PRIORITY_INTEL EVENT_CLASS_INTEL
-    global IGNORE_NOTICE_TYPES IGNORE_INTEL_SOURCES
-    global sguildSocketID DEBUG
-    set GO 0
+        global HOSTNAME AGENT_ID NEXT_EVENT_ID AGENT_TYPE GEN_ID
+        global EVENT_PRIORITY_NOTICE EVENT_CLASS_NOTICE EVENT_PRIORITY_INTEL EVENT_CLASS_INTEL
+        global IGNORE_NOTICE_TYPES IGNORE_INTEL_SOURCES
+        global sguildSocketID DEBUG
+        set GO 0
 
-    ## Notice entry looks like this ##
-    # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,proto,note,msg,sub,src,dst,p,n,peer_descr
-    # actions,suppress_for,dropped,remote_location.country_code,remote_location.region,remote_location.city,remote_location.latitude,
-    # remote_location.longitude
- 
-    ## Intel entry looks like this ##
-    # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,seen.indicator,seen.indicator_type,seen.where,sources
+        ## Notice entry looks like this ##
+        # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,proto,note,msg,sub,src,dst,p,n,peer_descr
+        # actions,suppress_for,dropped,remote_location.country_code,remote_location.region,remote_location.city,remote_location.latitude,
+        # remote_location.longitude
 
-    # There really isn't a lot of error checking here other than record length and a timestamp located in the right spot, right format.
-    # The fields could quite possibly be gibberish but I think regexing every single one is wasteful.
-    set fields [split $line '\t']
-    set flen [llength $fields]
-    switch $flen {
-        26 {
-            # Notice log
-            lassign $fields \
-                    timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
-                    p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
-                    remote_location_city remote_location_latitude remote_location_longitude
-            # Only send certain notice types to Sguil
-            if { [lsearch -nocase $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }   
-        }
-        13 {
-            # Intel log
-            lassign $fields \
-                    timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc seen_indicator \
-                    seen_indicator_type seen_where sources
-            # Only send intel from specified sources to Sguil
-            if { [lsearch -nocase $IGNORE_INTEL_SOURCES $sources] >= 0} { return 0 }
-        }
-        default {
-            return 0
-        }
-    }
+        ## Intel entry looks like this ##
+        # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,seen.indicator,seen.indicator_type,seen.where,sources
 
-    if { [regexp -expanded {
-
-        ^(\d{10}).      # seconds
-        (\d{6})$        # ms
-
-            } $timestamp match seconds ms ] } {
-
-        # Format timestamp
-        set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
-            
-        # Source address and port
-        if { $_src_ip == "-" } {
-            set parts [split [FourSix "$src:0"] "|"]
-        } else {
-            set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
-        }
-
-        lassign $parts src_ip src_port
-
-        # Destination address and port
-        if { $_dst_ip == "-" } {
-            set parts [split [FourSix "$dst:$p"] "|"]
-        } else {
-            set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
-        }
-
-        lassign $parts dst_ip dst_port
-
+        # There really isn't a lot of error checking here other than record length and a timestamp located in the right spot, right format.
+        # The fields could quite possibly be gibberish but I think regexing every single one is wasteful.
+        set fields [split $line '\t']
+        set flen [llength $fields]
         switch $flen {
-            26 {
-                # Notice
-                set message "\[BRO\] $note"
-                set priority $EVENT_PRIORITY_NOTICE
-                set class $EVENT_CLASS_NOTICE
-                set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nUID:\t $uid \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
-                            \nFile Desc:\t $file_desc \nProto:\t $proto \nP:\t $p \nN:\t $n \nPeer Descr:\t $peer_descr \nActions:\t $actions \
-                            \nSuppress For:\t $suppress_for \nDropped:\t $dropped \nCountry Code:\t $remote_location_country_code \
-                            \nRegion:\t $remote_location_region \nCity:\t $remote_location_city \
-                            \nLat.:\t $remote_location_latitude \nLong.:\t $remote_location_longitude"
-                switch $proto {
-                    "tcp" { set proto 6 }
-                    "udp" { set proto 17 }
-                    "icmp" { set proto 1 }
-                    default { set proto 6 }
+                26 {
+                        # Notice log
+                        lassign $fields \
+                                        timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc proto note msg sub src dst \
+                                        p n peer_descr actions suppress_for dropped remote_location_country_code remote_location_region \
+                                        remote_location_city remote_location_latitude remote_location_longitude
+                        # Only send certain notice types to Sguil
+                        if { [lsearch -nocase $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }
                 }
-            }
-            13 {
-                # Intel
-                set message "\[BRO\] $seen_indicator_type ($seen_indicator)"
-                set priority $EVENT_PRIORITY_INTEL
-                set class $EVENT_CLASS_INTEL
-                set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \
-                            \nSources:\t $sources \nUID:\t $uid  \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \nFile Desc:\t $file_desc"
-                set proto 6
-            }
+                14 {
+                        # Intel log
+                        lassign $fields \
+                                        timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc seen_indicator \
+                                        seen_indicator_type seen_where seen_node sources
+                        # Only send intel from specified sources to Sguil
+                        if { [lsearch -nocase $IGNORE_INTEL_SOURCES $sources] >= 0} { return 0 }
+                }
+                default {
+                        return 0
+                }
         }
 
-        set GO 1
+        if { [regexp -expanded {
 
-    }
+                ^(\d{10}).      # seconds
+                (\d{6})$        # ms
 
-    if { $GO == 1 } {
-        set tmp_id [string range [md5::md5 -hex $message] 0 14]
-        set sig_id [string range [scan $tmp_id %x] 0 7] 
-        set rev "1"
+                        } $timestamp match seconds ms ] } {
 
-        # Build the event to send
-        set event [list GenericEvent 0 $priority $class $HOSTNAME $nDate $AGENT_ID $NEXT_EVENT_ID \
-                   $NEXT_EVENT_ID [string2hex $message] $src_ip $dst_ip $proto $src_port $dst_port \
-                   $GEN_ID 4$sig_id $rev [string2hex $detail]]
-    
-        # Send the event to sguild
-        if { $DEBUG } { puts "Sending: $event" }
-            while { [catch {puts $sguildSocketID $event} tmpError] } {
-    
-            # Send to sguild failed
-            if { $DEBUG } { puts "Send Failed: $tmpError" }
-    
-            # Close open socket
-            catch {close $sguildSocketID}
-            
-            # Reconnect loop
-            while { ![ConnectToSguild] } { after 15000 }
+                # Format timestamp
+                set nDate [clock format $seconds -gmt true -format "%Y-%m-%d %T"]
+
+                # Source address and port
+                if { $_src_ip == "-" } {
+                        set parts [split [FourSix "$src:0"] "|"]
+                } else {
+                        set parts [split [FourSix "$_src_ip:$_src_port"] "|"]
+                }
+
+                lassign $parts src_ip src_port
+
+                # Destination address and port
+                if { $_dst_ip == "-" } {
+                        set parts [split [FourSix "$dst:$p"] "|"]
+                } else {
+                        set parts [split [FourSix "$_dst_ip:$_dst_port"] "|"]
+                }
+
+                lassign $parts dst_ip dst_port
+
+                switch $flen {
+                        26 {
+                                # Notice
+                                set note [string map {:: -} $note]
+                                set note [regsub -all {\(|\)} $note ""]
+                                set message "\[BRO\] $note"
+                                set priority $EVENT_PRIORITY_NOTICE
+                                set class $EVENT_CLASS_NOTICE
+                                set detail "Message:\t $msg \nSub:\t $sub \nSrc:\t $src \nDst:\t $dst \nUID:\t $uid \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \
+                                                        \nFile Desc:\t $file_desc \nProto:\t $proto \nP:\t $p \nN:\t $n \nPeer Descr:\t $peer_descr \nActions:\t $actions \
+                                                        \nSuppress For:\t $suppress_for \nDropped:\t $dropped \nCountry Code:\t $remote_location_country_code \
+                                                        \nRegion:\t $remote_location_region \nCity:\t $remote_location_city \
+                                                        \nLat.:\t $remote_location_latitude \nLong.:\t $remote_location_longitude"
+                                switch $proto {
+                                        "tcp" { set proto 6 }
+                                        "udp" { set proto 17 }
+                                        "icmp" { set proto 1 }
+                                        default { set proto 6 }
+                                }
+                        }
+                        14 {
+                                # Intel
+                                set seen_indicator_type [string map {:: -} $seen_indicator_type]
+                                set message "\[BRO\] $seen_indicator_type - $seen_indicator"
+                                set priority $EVENT_PRIORITY_INTEL
+                                set class $EVENT_CLASS_INTEL
+                                set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \nDetecting Sensor:\t $seen_node\
+                                                        \nSources:\t $sources \nUID:\t $uid  \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \nFile Desc:\t $file_desc"
+                                set proto 6
+                        }
+                }
+
+                set GO 1
 
         }
-    
-        # Sguild response should be "ConfirmEvent eventID"
-        if { [catch {gets $sguildSocketID response} readError] } {
-    
-            # Couldn't read from sguild
-            if { $DEBUG } { puts "Read Failed: $readError" }
 
-            # Close open socket
-            catch {close $sguildSocketID}
+        if { $GO == 1 } {
+                set tmp_id [string range [md5::md5 -hex $message] 0 14]
+                set sig_id [string range [scan $tmp_id %x] 0 7]
+                set rev "1"
 
-            # Reconnect loop
-            while { ![ConnectToSguilServer] } { after 15000 }
-            return 0
-    
+                # Build the event to send
+                set event [list GenericEvent 0 $priority $class $HOSTNAME $nDate $AGENT_ID $NEXT_EVENT_ID \
+                                   $NEXT_EVENT_ID [string2hex $message] $src_ip $dst_ip $proto $src_port $dst_port \
+                                   $GEN_ID 4$sig_id $rev [string2hex $detail]]
+
+                # Send the event to sguild
+                if { $DEBUG } { puts "Sending: $event" }
+                        while { [catch {puts $sguildSocketID $event} tmpError] } {
+
+                        # Send to sguild failed
+                        if { $DEBUG } { puts "Send Failed: $tmpError" }
+
+                        # Close open socket
+                        catch {close $sguildSocketID}
+
+                        # Reconnect loop
+                        while { ![ConnectToSguild] } { after 15000 }
+
+                }
+
+                # Sguild response should be "ConfirmEvent eventID"
+                if { [catch {gets $sguildSocketID response} readError] } {
+
+                        # Couldn't read from sguild
+                        if { $DEBUG } { puts "Read Failed: $readError" }
+
+                        # Close open socket
+                        catch {close $sguildSocketID}
+
+                        # Reconnect loop
+                        while { ![ConnectToSguilServer] } { after 15000 }
+                        return 0
+
+                }
+
+                if {$DEBUG} { puts "Received: $response" }
+
+                if { [llength $response] != 2 || [lindex $response 0] != "ConfirmEvent" || [lindex $response 1] != $NEXT_EVENT_ID } {
+
+                        # Send to sguild failed
+                        if { $DEBUG } { puts "Recv Failed" }
+
+                        # Close open socket
+                        catch {close $sguildSocketID}
+
+                        # Reconnect loop
+                        while { ![ConnectToSguilServer] } { after 15000 }
+                        return 0
+
+                }
+
+                # Success! Increment the next event id
+                incr NEXT_EVENT_ID
+
         }
-
-        if {$DEBUG} { puts "Received: $response" }
-    
-        if { [llength $response] != 2 || [lindex $response 0] != "ConfirmEvent" || [lindex $response 1] != $NEXT_EVENT_ID } {
-    
-            # Send to sguild failed
-            if { $DEBUG } { puts "Recv Failed" }
-
-            # Close open socket
-            catch {close $sguildSocketID}
-
-            # Reconnect loop
-            while { ![ConnectToSguilServer] } { after 15000 }
-            return 0                
-    
-        }
-    
-        # Success! Increment the next event id
-        incr NEXT_EVENT_ID
-
-    }
 
 }
 
 # Initialize connection to sguild
 proc ConnectToSguilServer {} {
 
-    global sguildSocketID HOSTNAME CONNECTED
-    global SERVER_HOST SERVER_PORT DEBUG VERSION
-    global AGENT_ID NEXT_EVENT_ID
-    global AGENT_TYPE NET_GROUP
+        global sguildSocketID HOSTNAME CONNECTED
+        global SERVER_HOST SERVER_PORT DEBUG VERSION
+        global AGENT_ID NEXT_EVENT_ID
+        global AGENT_TYPE NET_GROUP
 
-    # Connect
-    if {[catch {set sguildSocketID [socket $SERVER_HOST $SERVER_PORT]}] > 0} {
+        # Connect
+        if {[catch {set sguildSocketID [socket $SERVER_HOST $SERVER_PORT]}] > 0} {
 
-        # Connection failed #
+                # Connection failed #
 
-        set CONNECTED 0
-        if {$DEBUG} {puts "Unable to connect to $SERVER_HOST on port $SERVER_PORT."}
+                set CONNECTED 0
+                if {$DEBUG} {puts "Unable to connect to $SERVER_HOST on port $SERVER_PORT."}
 
-    } else {
+        } else {
 
-        # Connection Successful #
-        fconfigure $sguildSocketID -buffering line
+                # Connection Successful #
+                fconfigure $sguildSocketID -buffering line
 
-        # Version checks
-        set tmpVERSION "$VERSION OPENSSL ENABLED"
+                # Version checks
+                set tmpVERSION "$VERSION OPENSSL ENABLED"
 
-        if [catch {gets $sguildSocketID} serverVersion] {
-            puts "ERROR: $serverVersion"
-            catch {close $sguildSocketID}
-            exit 1
-         }
+                if [catch {gets $sguildSocketID} serverVersion] {
+                        puts "ERROR: $serverVersion"
+                        catch {close $sguildSocketID}
+                        exit 1
+                 }
 
-        if { $serverVersion == "Connection Refused." } {
+                if { $serverVersion == "Connection Refused." } {
 
-            puts $serverVersion
-            catch {close $sguildSocketID}
-            exit 1
+                        puts $serverVersion
+                        catch {close $sguildSocketID}
+                        exit 1
 
-        } elseif { $serverVersion != $tmpVERSION } {
+                } elseif { $serverVersion != $tmpVERSION } {
 
-            catch {close $sguildSocketID}
-            puts "Mismatched versions.\nSERVER: ($serverVersion)\nAGENT: ($tmpVERSION)"
-            return 0
+                        catch {close $sguildSocketID}
+                        puts "Mismatched versions.\nSERVER: ($serverVersion)\nAGENT: ($tmpVERSION)"
+                        return 0
+
+                }
+
+                if [catch {puts $sguildSocketID [list VersionInfo $tmpVERSION]} tmpError] {
+                        catch {close $sguildSocketID}
+                        puts "Unable to send version string: $tmpError"
+                        return 0
+                }
+
+                catch { flush $sguildSocketID }
+                tls::import $sguildSocketID -ssl2 false -ssl3 false -tls1 true
+
+                set CONNECTED 1
+                if {$DEBUG} {puts "Connected to $SERVER_HOST"}
 
         }
 
-        if [catch {puts $sguildSocketID [list VersionInfo $tmpVERSION]} tmpError] {
-            catch {close $sguildSocketID}
-            puts "Unable to send version string: $tmpError"
-            return 0
+        # Register the agent with sguild.
+        set msg [list RegisterAgent $AGENT_TYPE $HOSTNAME $NET_GROUP]
+        if { $DEBUG } { puts "Sending: $msg" }
+        if { [catch { puts $sguildSocketID $msg } tmpError] } {
+
+                # Send failed
+                puts "Error: $tmpError"
+                catch {close $sguildSocketID}
+                return 0
+
         }
 
-        catch { flush $sguildSocketID }
-        tls::import $sguildSocketID -ssl2 false -ssl3 false -tls1 true
+        # Read reply from sguild.
+        if { [eof $sguildSocketID] || [catch {gets $sguildSocketID data}] } {
 
-        set CONNECTED 1
-        if {$DEBUG} {puts "Connected to $SERVER_HOST"}
+                # Read failed.
+                catch {close $sockID}
+                return 0
 
-    }
+        }
+        if { $DEBUG } { puts "Received: $data" }
 
-    # Register the agent with sguild.
-    set msg [list RegisterAgent $AGENT_TYPE $HOSTNAME $NET_GROUP]
-    if { $DEBUG } { puts "Sending: $msg" }
-    if { [catch { puts $sguildSocketID $msg } tmpError] } { 
- 
-        # Send failed
-        puts "Error: $tmpError"
-        catch {close $sguildSocketID} 
-        return 0
-    
-    }
+        # Process agent info returned from sguild
+        # Should return:  AgentInfo sensorName agentType netName sensorID maxCid
+        if { [lindex $data 0] != "AgentInfo" } {
 
-    # Read reply from sguild.
-    if { [eof $sguildSocketID] || [catch {gets $sguildSocketID data}] } {
- 
-        # Read failed.
-        catch {close $sockID} 
-        return 0
+                # This isn't what we were expecting
+                catch {close $sguildSocketID}
+                return 0
 
-    }
-    if { $DEBUG } { puts "Received: $data" }
+        }
 
-    # Process agent info returned from sguild
-    # Should return:  AgentInfo sensorName agentType netName sensorID maxCid
-    if { [lindex $data 0] != "AgentInfo" } {
+        # AgentInfo    { AgentInfo [lindex $data 1] [lindex $data 2] [lindex $data 3] [lindex $data 4] [lindex $data 5]}
+        set AGENT_ID [lindex $data 4]
+        set NEXT_EVENT_ID [expr [lindex $data 5] + 1]
 
-        # This isn't what we were expecting
-        catch {close $sguildSocketID}
-        return 0
+        return 1
 
-    }
-
-    # AgentInfo    { AgentInfo [lindex $data 1] [lindex $data 2] [lindex $data 3] [lindex $data 4] [lindex $data 5]}
-    set AGENT_ID [lindex $data 4]
-    set NEXT_EVENT_ID [expr [lindex $data 5] + 1]
-
-    return 1
-    
 }
 
 proc Daemonize {} {
 
-    global PID_FILE DEBUG
+        global PID_FILE DEBUG
 
-    # We need extended tcl to run in the background
-    # Load extended tcl
-    if [catch {package require Tclx} tclxVersion] {
+        # We need extended tcl to run in the background
+        # Load extended tcl
+        if [catch {package require Tclx} tclxVersion] {
 
-        puts "ERROR: The tclx extension does NOT appear to be installed on this sysem."
-        puts "Extended tcl (tclx) contains the 'fork' function needed to daemonize this"
-        puts "process.  Install tclx or background the process manually.  Extended tcl"
-        puts "(tclx) is available as a port/package for most linux and BSD systems."
-        exit 1
+                puts "ERROR: The tclx extension does NOT appear to be installed on this sysem."
+                puts "Extended tcl (tclx) contains the 'fork' function needed to daemonize this"
+                puts "process.  Install tclx or background the process manually.  Extended tcl"
+                puts "(tclx) is available as a port/package for most linux and BSD systems."
+                exit 1
 
-    }
+        }
 
-    set DEBUG 0
-    set childPID [fork]
-    # Parent exits.
-    if { $childPID == 0 } { exit }
-    id process group set
-    if {[fork]} {exit 0}
-    set PID [id process]
-    if { ![info exists PID_FILE] } { set PID_FILE "/var/run/sensor_agent.pid" }
-    set PID_DIR [file dirname $PID_FILE]
+        set DEBUG 0
+        set childPID [fork]
+        # Parent exits.
+        if { $childPID == 0 } { exit }
+        id process group set
+        if {[fork]} {exit 0}
+        set PID [id process]
+        if { ![info exists PID_FILE] } { set PID_FILE "/var/run/sensor_agent.pid" }
+        set PID_DIR [file dirname $PID_FILE]
 
-    if { ![file exists $PID_DIR] || ![file isdirectory $PID_DIR] || ![file writable $PID_DIR] } {
+        if { ![file exists $PID_DIR] || ![file isdirectory $PID_DIR] || ![file writable $PID_DIR] } {
 
-        puts "ERROR: Directory $PID_DIR does not exists or is not writable."
-        puts "Process ID will not be written to file."
+                puts "ERROR: Directory $PID_DIR does not exists or is not writable."
+                puts "Process ID will not be written to file."
 
-    } else {
+        } else {
 
-        set pidFileID [open $PID_FILE w]
-        puts $pidFileID $PID
-        close $pidFileID
+                set pidFileID [open $PID_FILE w]
+                puts $pidFileID $PID
+                close $pidFileID
 
-    }
+        }
 
 }
 
@@ -461,10 +464,10 @@ proc Daemonize {} {
 #
 proc CheckLineFormat { line } {
 
-    set RETURN 1
-    # Right now we just check the length and for "set".
-    if { [llength $line] != 3 || [lindex $line 0] != "set" } { set RETURN 0 }
-    return $RETURN
+        set RETURN 1
+        # Right now we just check the length and for "set".
+        if { [llength $line] != 3 || [lindex $line 0] != "set" } { set RETURN 0 }
+        return $RETURN
 
 }
 
@@ -473,8 +476,8 @@ proc CheckLineFormat { line } {
 #
 proc GetCurrentTimeStamp {} {
 
-    set timestamp [clock format [clock seconds] -gmt true -f "%Y-%m-%d %T"]
-    return $timestamp
+        set timestamp [clock format [clock seconds] -gmt true -f "%Y-%m-%d %T"]
+        return $timestamp
 
 }
 
@@ -483,17 +486,17 @@ proc GetCurrentTimeStamp {} {
 #
 proc string2hex { s } {
 
-    set i 0
-    set r {}
-    while { $i < [string length $s] } {
+        set i 0
+        set r {}
+        while { $i < [string length $s] } {
 
-        scan [string index $s $i] "%c" tmp
-        append r [format "%02X" $tmp]
-        incr i
+                scan [string index $s $i] "%c" tmp
+                append r [format "%02X" $tmp]
+                incr i
 
-    }
+        }
 
-    return $r
+        return $r
 
 }
 
@@ -501,101 +504,101 @@ proc string2hex { s } {
 ################### MAIN ###########################
 
 # Standard options are below. If you need to add more switches,
-# put them here. 
-# 
+# put them here.
+#
 # GetOpts
 set state flag
 foreach arg $argv {
 
-    switch -- $state {
+        switch -- $state {
 
-        flag {
+                flag {
 
-            switch -glob -- $arg {
+                        switch -glob -- $arg {
 
-                -- { set state flag }
-                -D { set DAEMON_CONF_OVERRIDE 1 }
-                -c { set state conf }
-                -O { set state sslpath }
-                -f { set state filename }
+                                -- { set state flag }
+                                -D { set DAEMON_CONF_OVERRIDE 1 }
+                                -c { set state conf }
+                                -O { set state sslpath }
+                                -f { set state filename }
+                                default { DisplayUsage $argv0 }
+
+                        }
+
+                }
+
+                conf     { set CONF_FILE $arg; set state flag }
+                sslpath  { set TLS_PATH $arg; set state flag }
+                filename { set FILENAME $arg; set state flag }
                 default { DisplayUsage $argv0 }
 
-            }
-
         }
-
-        conf     { set CONF_FILE $arg; set state flag }
-        sslpath  { set TLS_PATH $arg; set state flag }
-        filename { set FILENAME $arg; set state flag }
-        default { DisplayUsage $argv0 }
-
-    }
 
 }
 
 # Parse the config file here. Make sure you define the default config file location
 if { ![info exists CONF_FILE] } {
 
-    # No conf file specified check the defaults
-    if { [file exists /etc/bro_agent.conf] } {
+        # No conf file specified check the defaults
+        if { [file exists /etc/bro_agent.conf] } {
 
-        set CONF_FILE /etc/bro_agent.conf
+                set CONF_FILE /etc/bro_agent.conf
 
-    } elseif { [file exists ./bro_agent.conf] } {
+        } elseif { [file exists ./bro_agent.conf] } {
 
-        set CONF_FILE ./bro_agent.conf
+                set CONF_FILE ./bro_agent.conf
 
-    } else {
+        } else {
 
-        puts "Couldn't determine where the bro_agent.tcl config file is"
-        puts "Looked for /etc/bro_agent.conf and ./bro_agent.conf."
-        DisplayUsage $argv0
+                puts "Couldn't determine where the bro_agent.tcl config file is"
+                puts "Looked for /etc/bro_agent.conf and ./bro_agent.conf."
+                DisplayUsage $argv0
 
-    }
+        }
 
 }
 
 set i 0
 if { [info exists CONF_FILE] } {
 
-    # Parse the config file. Currently the only option is to
-    # create a variable using 'set varName value'
-    set confFileID [open $CONF_FILE r]
-    while { [gets $confFileID line] >= 0 } {
+        # Parse the config file. Currently the only option is to
+        # create a variable using 'set varName value'
+        set confFileID [open $CONF_FILE r]
+        while { [gets $confFileID line] >= 0 } {
 
-        incr i
-        if { ![regexp ^# $line] && ![regexp ^$ $line] } {
+                incr i
+                if { ![regexp ^# $line] && ![regexp ^$ $line] } {
 
-            if { [CheckLineFormat $line] } {
+                        if { [CheckLineFormat $line] } {
 
-                if { [catch {eval $line} evalError] } {
+                                if { [catch {eval $line} evalError] } {
 
-                    puts "Error at line $i in $CONF_FILE: $line"
-                    exit 1
+                                        puts "Error at line $i in $CONF_FILE: $line"
+                                        exit 1
+
+                                }
+
+                        } else {
+
+                                puts "Error at line $i in $CONF_FILE: $line"
+                                exit 1
+
+                        }
 
                 }
 
-            } else {
-
-                puts "Error at line $i in $CONF_FILE: $line"
-                exit 1
-
-            }
-
         }
 
-    }
+        close $confFileID
 
-    close $confFileID
-
-    if { ![info exists EVENT_PRIORITY_NOTICE] } { set $EVENT_PRIORITY_NOTICE 2 }
-    if { ![info exists EVENT_CLASS_NOTICE] } { set $EVENT_CLASS_NOTICE "misc-activity" }
-    if { ![info exists EVENT_PRIORITY_INTEL] } { set $EVENT_PRIORITY_INTEL 1 }
-    if { ![info exists EVENT_CLASS_INTEL] } { set $EVENT_CLASS_INTEL "bad-unknown" }
+        if { ![info exists EVENT_PRIORITY_NOTICE] } { set $EVENT_PRIORITY_NOTICE 2 }
+        if { ![info exists EVENT_CLASS_NOTICE] } { set $EVENT_CLASS_NOTICE "misc-activity" }
+        if { ![info exists EVENT_PRIORITY_INTEL] } { set $EVENT_PRIORITY_INTEL 1 }
+        if { ![info exists EVENT_CLASS_INTEL] } { set $EVENT_CLASS_INTEL "bad-unknown" }
 
 } else {
 
-    DisplayUsage $argv0
+        DisplayUsage $argv0
 
 }
 
@@ -607,33 +610,33 @@ if {[info exists DAEMON] && $DAEMON} {Daemonize}
 # Need path?
 if { [info exists TLS_PATH] } {
 
-    if [catch {load $TLS_PATH} tlsError] {
+        if [catch {load $TLS_PATH} tlsError] {
 
-        puts "ERROR: Unable to load tls libs ($TLS_PATH): $tlsError"
-        DisplayUsage $argv0
+                puts "ERROR: Unable to load tls libs ($TLS_PATH): $tlsError"
+                DisplayUsage $argv0
 
-    }
+        }
 
 }
 
 if { [catch {package require tls} tmpError] }  {
 
-    puts "ERROR: Unable to load tls package: $tmpError"
-    DisplayUsage $argv0
+        puts "ERROR: Unable to load tls package: $tmpError"
+        DisplayUsage $argv0
 
 }
 
 ### Load MD5 support
 if [catch {package require md5} md5Version] {
-    puts "Error: Package md5 not found"
-    exit
+        puts "Error: Package md5 not found"
+        exit
 }
 
 # Connect to sguild
 while { ![ConnectToSguilServer] } {
 
-    # Wait 15 secs before reconnecting
-    after 15000
+        # Wait 15 secs before reconnecting
+        after 15000
 }
 
 # Intialize the Agent
