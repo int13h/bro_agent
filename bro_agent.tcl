@@ -76,8 +76,8 @@ proc bgerror { errorMsg } {
 proc InitAgent {} {
 
         global DEBUG FILENAME
-
-        if [catch {open "| tail -n 0 -F $FILENAME" r} fileID] {
+        # Kevin Branch pointed out a bug in Ubuntu with Tail that requires ---disable-inotify argument as a work around.
+        if [catch {open "| tail ---disable-inotify -n0 -q -F $FILENAME 2> /dev/null" r} fileID] {
                 puts "Error opening $FILENAME : $fileID"
                 exit 1
         }
