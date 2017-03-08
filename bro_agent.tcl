@@ -163,7 +163,7 @@ proc ProcessData { line } {
         # remote_location.longitude
 
         ## Intel entry looks like this ##
-        # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,fuid,file_mime_type,file_desc,seen.indicator,seen.indicator_type,seen.where,sources
+        # ts,uid,id.orig_h,id.orig_p,id.resp_h,id.resp_p,seen.indicator,seen.indicator_type,seen.where,seen.node,matched,sources,fuid,file_mime_type,file_desc
 
         # There really isn't a lot of error checking here other than record length and a timestamp located in the right spot, right format.
         # The fields could quite possibly be gibberish but I think regexing every single one is wasteful.
@@ -179,11 +179,11 @@ proc ProcessData { line } {
                         # Only send certain notice types to Sguil
                         if { [lsearch -nocase $IGNORE_NOTICE_TYPES $note] >= 0} { return 0 }
                 }
-                14 {
+                15 {
                         # Intel log
                         lassign $fields \
-                                        timestamp uid _src_ip _src_port _dst_ip _dst_port fuid file_mime_type file_desc seen_indicator \
-                                        seen_indicator_type seen_where seen_node sources
+                                        timestamp uid _src_ip _src_port _dst_ip _dst_port seen_indicator seen_indicator_type seen_where seen_node \
+                                        matched sources fuid file_mime_type file_desc
                         # Only send intel from specified sources to Sguil
                         if { [lsearch -nocase $IGNORE_INTEL_SOURCES $sources] >= 0} { return 0 }
                 }
@@ -240,13 +240,14 @@ proc ProcessData { line } {
                                         default { set proto 6 }
                                 }
                         }
-                        14 {
+                        15 {
                                 # Intel
                                 set seen_indicator_type [string map {:: -} $seen_indicator_type]
+                                set matched [string map {:: -} $matched]
                                 set message "\[BRO\] $seen_indicator_type - $seen_indicator"
                                 set priority $EVENT_PRIORITY_INTEL
                                 set class $EVENT_CLASS_INTEL
-                                set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nSeen Where:\t $seen_where \nDetecting Sensor:\t $seen_node\
+                                set detail "Indicator:\t $seen_indicator \nType:\t $seen_indicator_type \nMatches:\t $matched \nSeen Where:\t $seen_where \nDetecting Sensor:\t $seen_node\
                                                         \nSources:\t $sources \nUID:\t $uid  \nFUID:\t $fuid \nFile Mime Type:\t $file_mime_type \nFile Desc:\t $file_desc"
                                 set proto 6
                         }
